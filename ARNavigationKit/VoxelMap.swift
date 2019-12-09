@@ -13,7 +13,7 @@ import simd
 import UIKit
 
 /// Description
-protocol VoxelMapDelegate: class {
+public protocol ARNavigationKitDelegate: class {
     /// Description
     /// - Parameter View: View description
     func updateDebugView(_ View: UIView)
@@ -23,7 +23,7 @@ protocol VoxelMapDelegate: class {
 }
 
 /// Description
-class VoxelMap {
+public class ARNavigationKit {
     private let queue = DispatchQueue(label: "Voxel")
     private var voxelSet = Set<Voxel>()
     private var gridSize: Float!
@@ -36,24 +36,24 @@ class VoxelMap {
     private var alreadyRenderedVoxels = Set<Voxel>()
 
     /// Description
-    var noiseLevel = 5
+    public var noiseLevel = 5
 
     /// Description
-    weak var voxelMapDelegate: VoxelMapDelegate?
+    public weak var arNavigationKitDelegate: ARNavigationKitDelegate?
 
     ///  Sets the minimum resolution of a Voxel in metres cubed as well as the grid size used.
     /// - Parameter VoxelGridCellSize: grid cell size  in metres.
-    init(VoxelGridCellSize: Float) {
+    public init(VoxelGridCellSize: Float) {
         gridSize = 1 / VoxelGridCellSize
     }
 
-    init() {
+    public init() {
         gridSize = 50
     }
 
     /// Description
     /// - Parameter vector: vector description
-    func addVoxel(_ vector: vector_float3) {
+    public func addVoxel(_ vector: vector_float3) {
         queue.async {
             let voxel = Voxel(vector: self.normaliseVector(vector), scale: vector_float3(self.gridSize, self.gridSize, self.gridSize), density: 1)
             if self.voxelSet.contains(voxel) {
@@ -68,20 +68,20 @@ class VoxelMap {
 
     /// Description
     /// - Parameter vectors: vectors description
-    func addVoxels(_ vectors: [vector_float3]) {
+    public func addVoxels(_ vectors: [vector_float3]) {
         vectors.forEach { addVoxel($0) }
     }
 
     /// Description
     /// - Parameter plane: plane description
-    func updateGroundPlane(_ plane: ARPlaneAnchor) {
+    public func updateGroundPlane(_ plane: ARPlaneAnchor) {
         queue.async {
             self.groundHeight = min(plane.transform.columns.3.y, self.groundHeight ?? Float(Int.max))
         }
     }
 
     /// Description
-    func getPointCloudNode(completion: @escaping (SCNNode) -> Void) {
+    public func getPointCloudNode(completion: @escaping (SCNNode) -> Void) {
         queue.async {
             let points = self.voxelSet.map { SIMD3<Float>($0.Position) }
 
@@ -97,7 +97,7 @@ class VoxelMap {
     /// - Parameters:
     ///   - start: start description
     ///   - end: end description
-    func getPath(start: SCNVector3, end: SCNVector3) {
+    public func getPath(start: SCNVector3, end: SCNVector3) {
         queue.async {
             self.setMinMax()
             guard let map = self.makeGraph() else { return }
@@ -117,14 +117,14 @@ class VoxelMap {
             }
 
             DispatchQueue.main.async {
-                self.voxelMapDelegate?.getPathupdate(path)
+                self.arNavigationKitDelegate?.getPathupdate(path)
             }
         }
     }
 
     /// Description
     /// - Parameter redrawAll: redrawAll description
-    func getVoxelMap(redrawAll: Bool, completion: @escaping ([SCNNode]) -> Void) {
+    public func getVoxelMap(redrawAll: Bool, completion: @escaping ([SCNNode]) -> Void) {
         queue.async {
             var voxelNodes = [SCNNode]()
             let voxels = self.voxelSet
@@ -146,10 +146,10 @@ class VoxelMap {
     }
 
     /// Description
-    func getObstacleGraphDebug() {
+    public func getObstacleGraphDebug() {
         queue.async {
             guard let matrix = self.makeGraph() else { return }
-            self.voxelMapDelegate?.updateDebugView(MapVisualisation(map: matrix))
+            self.arNavigationKitDelegate?.updateDebugView(MapVisualisation(map: matrix))
         }
     }
 
@@ -157,7 +157,7 @@ class VoxelMap {
     /// - Parameters:
     ///   - start: start description
     ///   - end: end description
-    func getObstacleGraphAndPathDebug(start: SCNVector3, end: SCNVector3) {
+    public func getObstacleGraphAndPathDebug(start: SCNVector3, end: SCNVector3) {
         queue.async {
             self.setMinMax()
             guard var map = self.makeGraph() else { return }
@@ -168,7 +168,7 @@ class VoxelMap {
             guard let path = aStar.findPathTo(end: _end) else { return }
             path.forEach { map[$0.position.xI][$0.position.yI] = map[$0.position.xI][$0.position.yI] == 1 ? 4 : 3 }
             DispatchQueue.main.async {
-                self.voxelMapDelegate?.updateDebugView(MapVisualisation(map: map))
+                self.arNavigationKitDelegate?.updateDebugView(MapVisualisation(map: map))
             }
         }
     }
