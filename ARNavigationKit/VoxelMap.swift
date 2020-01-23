@@ -22,7 +22,7 @@ public protocol ARNavigationKitDelegate: class {
     func getPathupdate(_ path: [vector_float3]?)
 }
 
-enum filters: Int {
+public enum filters: Int {
     case none = 0
     case ruste = 1
 }
