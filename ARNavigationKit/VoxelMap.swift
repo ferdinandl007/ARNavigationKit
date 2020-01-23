@@ -22,6 +22,11 @@ public protocol ARNavigationKitDelegate: class {
     func getPathupdate(_ path: [vector_float3]?)
 }
 
+enum filters: Int {
+    case none = 0
+    case ruste = 1
+}
+
 /// Description
 public class ARNavigationKit {
     private let queue = DispatchQueue(label: "Voxel")
@@ -37,6 +42,8 @@ public class ARNavigationKit {
 
     /// Description
     public var noiseLevel = 5
+    
+    public var filter: filters = .ruste
 
     /// Description
     public weak var arNavigationKitDelegate: ARNavigationKitDelegate?
@@ -214,9 +221,14 @@ public class ARNavigationKit {
                 graph[row][column] = 1
             }
         }
-//        graph = Mapfilters.mapRoasting(graph, kernel: CGSize(width: 2, height: 2))!
-        print(graph)
-        return graph
+
+        
+        switch filter {
+            case .ruste:
+                return Mapfilters.mapRoasting(graph, kernel: CGSize(width: 2, height: 2))
+            case .none:
+                return graph
+        }
     }
 
     /// Generate a geometry point cloud out of current Vertices.
