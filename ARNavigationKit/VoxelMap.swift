@@ -50,6 +50,18 @@ public class ARNavigationKit {
     public init() {
         gridSize = 50
     }
+    
+    
+    public init(mapData: Data,_ VoxelGridCellSize: Float) {
+        gridSize = VoxelGridCellSize
+        do {
+            if let loaded = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(mapData) as? Set<Voxel> {
+                voxelSet = loaded
+            }
+        } catch {
+            print("Couldn't read file.")
+        }
+    }
 
     /// Description
     /// - Parameter vector: vector description
@@ -170,6 +182,29 @@ public class ARNavigationKit {
             DispatchQueue.main.async {
                 self.arNavigationKitDelegate?.updateDebugView(MapVisualisation(map: map))
             }
+        }
+    }
+    
+    
+    public func getMapData() -> Data? {
+        do {
+            let data = try NSKeyedArchiver.archivedData(withRootObject: voxelSet, requiringSecureCoding: false)
+            return data
+        } catch {
+            print("Couldn't write file")
+            return nil
+        }
+    }
+    
+    public static func isMapData(_ data: Data) -> Bool {
+        do {
+            var test = false
+            if let _ = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? Set<Voxel> {
+                test = true
+            }
+            return test
+        } catch {
+            return false
         }
     }
 
