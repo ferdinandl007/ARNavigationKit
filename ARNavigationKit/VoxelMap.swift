@@ -22,6 +22,11 @@ public protocol ARNavigationKitDelegate: class {
     func getPathupdate(_ path: [vector_float3]?)
 }
 
+public enum filters: Int {
+    case none = 0
+    case ruste = 1
+}
+
 /// Description
 public class ARNavigationKit {
     private let queue = DispatchQueue(label: "Voxel")
@@ -32,13 +37,16 @@ public class ARNavigationKit {
     private var xMin: Float? // Min width.
     private var zMax: Float? // Max length.
     private var zMin: Float? // Min length.
-    // A record of voxels which have already been added to the SCNScene.
+    /// record of voxels which have already been added to the SCNScene.
     private var alreadyRenderedVoxels = Set<Voxel>()
 
-    /// Description
+    /// set minimum noise level to be considered voxel.
     public var noiseLevel = 5
+    
+    /// set filter option for map  processing.
+    public var filter: filters = .ruste
 
-    /// Description
+    /// Delegate  required for callbacks.
     public weak var arNavigationKitDelegate: ARNavigationKitDelegate?
 
     ///  Sets the minimum resolution of a Voxel in metres cubed as well as the grid size used.
@@ -46,7 +54,7 @@ public class ARNavigationKit {
     public init(VoxelGridCellSize: Float) {
         gridSize = 1 / VoxelGridCellSize
     }
-
+    /// Default initialiser.
     public init() {
         gridSize = 50
     }
@@ -63,8 +71,8 @@ public class ARNavigationKit {
         }
     }
 
-    /// Description
-    /// - Parameter vector: vector description
+    /// method to add individual vector points into the voxle map.
+    /// - Parameter vector: X,Y,Z vector in metres
     public func addVoxel(_ vector: vector_float3) {
         queue.async {
             let voxel = Voxel(vector: self.normaliseVector(vector), scale: vector_float3(self.gridSize, self.gridSize, self.gridSize), density: 1)
@@ -78,21 +86,22 @@ public class ARNavigationKit {
         }
     }
 
-    /// Description
-    /// - Parameter vectors: vectors description
+    /// add collection of vectors into the Voxel map.
+    /// use this method instead of calling at voxel repeatedly.
+    /// - Parameter vectors: mutable array of vector_float3
     public func addVoxels(_ vectors: [vector_float3]) {
         vectors.forEach { addVoxel($0) }
     }
 
-    /// Description
-    /// - Parameter plane: plane description
+    /// method to be called every time a new  horizontal plane is detected.
+    /// - Parameter plane: ARPlaneAnchor of the horizontal plane
     public func updateGroundPlane(_ plane: ARPlaneAnchor) {
         queue.async {
             self.groundHeight = min(plane.transform.columns.3.y, self.groundHeight ?? Float(Int.max))
         }
     }
 
-    /// Description
+    /// Callback method to receive rendered SCNNode of the current point cloud.
     public func getPointCloudNode(completion: @escaping (SCNNode) -> Void) {
         queue.async {
             let points = self.voxelSet.map { SIMD3<Float>($0.Position) }
@@ -105,7 +114,8 @@ public class ARNavigationKit {
         }
     }
 
-    /// Description
+    /// method to request a path calculation from a starting point and endpoint within current range of the map.
+    /// use the ARNavigationKitDelegate (getPathupdate) delegate method to receive the path update.
     /// - Parameters:
     ///   - start: start description
     ///   - end: end description
@@ -134,8 +144,8 @@ public class ARNavigationKit {
         }
     }
 
-    /// Description
-    /// - Parameter redrawAll: redrawAll description
+    /// this method returns rendered note of the current Voxel map
+    /// - Parameter redrawAll: option if only new Voxels should be returned or if a whole new Voxel map should be rendered.
     public func getVoxelMap(redrawAll: Bool, completion: @escaping ([SCNNode]) -> Void) {
         queue.async {
             var voxelNodes = [SCNNode]()
@@ -249,9 +259,14 @@ public class ARNavigationKit {
                 graph[row][column] = 1
             }
         }
-//        graph = Mapfilters.mapRoasting(graph, kernel: CGSize(width: 2, height: 2))!
-        print(graph)
-        return graph
+
+        
+        switch filter {
+            case .ruste:
+                return Mapfilters.mapRoasting(graph, kernel: CGSize(width: 2, height: 2))
+            case .none:
+                return graph
+        }
     }
 
     /// Generate a geometry point cloud out of current Vertices.
