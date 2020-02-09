@@ -8,7 +8,7 @@
 
 import Foundation
 import SceneKit
-
+import simd
 extension SCNVector3: Codable {
     public init(from decoder: Decoder) throws {
         var container = try decoder.unkeyedContainer()
@@ -25,6 +25,8 @@ extension SCNVector3: Codable {
         try container.encode(z)
     }
 }
+
+
 
 extension SCNMatrix4: Codable {
     public init(from decoder: Decoder) throws {

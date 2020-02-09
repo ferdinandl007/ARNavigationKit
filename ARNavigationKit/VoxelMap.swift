@@ -44,7 +44,7 @@ public class ARNavigationKit {
     public var noiseLevel = 5
     
     /// set filter option for map  processing.
-    public var filter: filters = .ruste
+    public var filter: filters = .none
 
     /// Delegate  required for callbacks.
     public weak var arNavigationKitDelegate: ARNavigationKitDelegate?
@@ -60,15 +60,12 @@ public class ARNavigationKit {
     }
     
     
-    public init(mapData: Data,_ VoxelGridCellSize: Float) {
+    public init(data: Data,_ VoxelGridCellSize: Float) {
         gridSize = VoxelGridCellSize
-        do {
-            if let loaded = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(mapData) as? Set<Voxel> {
-                voxelSet = loaded
-            }
-        } catch {
-            print("Couldn't read file.")
+        let array = data.withUnsafeBytes {
+            Array(UnsafeBufferPointer<Voxel>(start: $0, count: data.count/MemoryLayout<Voxel>.stride))
         }
+        array.forEach({self.voxelSet.insert($0)})
     }
 
     /// method to add individual vector points into the voxle map.
@@ -77,7 +74,7 @@ public class ARNavigationKit {
         queue.async {
             let voxel = Voxel(vector: self.normaliseVector(vector), scale: vector_float3(self.gridSize, self.gridSize, self.gridSize), density: 1)
             if self.voxelSet.contains(voxel) {
-                guard let newVoxel = self.voxelSet.remove(voxel) else { return }
+                guard var newVoxel = self.voxelSet.remove(voxel) else { return }
                 newVoxel.density += 1
                 self.voxelSet.insert(newVoxel)
             } else {
@@ -196,13 +193,19 @@ public class ARNavigationKit {
     }
     
     
-    public func getMapData() -> Data? {
-        do {
-            let data = try NSKeyedArchiver.archivedData(withRootObject: voxelSet, requiringSecureCoding: false)
-            return data
-        } catch {
-            print("Couldn't write file")
-            return nil
+    public func getMapData() -> Data {
+        let arr: [Voxel] = voxelSet.map({$0})
+        let data = Data(buffer: UnsafeBufferPointer(start: arr, count: arr.count))
+        return data
+    }
+    
+    public func lodeMapFromData(_ data: Data){
+        queue.async {
+            let num = data.count
+            let array = data.withUnsafeBytes {
+                Array(UnsafeBufferPointer<Voxel>(start: $0, count: num/MemoryLayout<Voxel>.stride))
+            }
+            array.forEach({self.voxelSet.insert($0)})
         }
     }
     
@@ -240,6 +243,7 @@ public class ARNavigationKit {
 
     private func makeGraph() -> [[Int]]? {
         setMinMax()
+        //let voxels = self.voxelSet
         guard let xmax = xMax else { return nil }
         guard let xmin = xMin else { return nil }
         guard let zmax = zMax else { return nil }
@@ -249,17 +253,18 @@ public class ARNavigationKit {
         let columns = Int((zmax - zmin) * gridSize) + 10 // y
 
         var graph = Array(repeating: Array(repeating: 2, count: columns + 2), count: rows + 2)
-        let voxels = voxelSet.map { $0 }
-        voxels.forEach { voxel in
+        
+        let voxels: [Voxel] = self.voxelSet.map({$0})
+        for voxel in voxels {
             let row = Int((xmax - voxel.Position.x) * gridSize) + 1
             let column = Int((zmax - voxel.Position.z) * gridSize) + 1
+            print(voxel.density)
             if voxel.Position.y < (groundHeight ?? -10) + 0.3 {
                 graph[row][column] = 0
             } else if voxel.density > noiseLevel {
                 graph[row][column] = 1
             }
         }
-
         
         switch filter {
             case .ruste:

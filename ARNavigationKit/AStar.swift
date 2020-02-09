@@ -72,13 +72,13 @@ class AStar {
         // If the destination is out of range.
         if !isValid(end.xI, end.yI) {
             print("Destination is invalid")
-            return []
+            return nil
         }
 
         // destination is blocked.
         if map[end.xI][end.yI] == 1 {
             print("destination is blocked")
-            return []
+            return nil
         }
 
         self.end = end
