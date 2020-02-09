@@ -62,10 +62,7 @@ public class ARNavigationKit {
     
     public init(data: Data,_ VoxelGridCellSize: Float) {
         gridSize = VoxelGridCellSize
-        let array = data.withUnsafeBytes {
-            Array(UnsafeBufferPointer<Voxel>(start: $0, count: data.count/MemoryLayout<Voxel>.stride))
-        }
-        array.forEach({self.voxelSet.insert($0)})
+        lodeMapFromData(data)
     }
 
     /// method to add individual vector points into the voxle map.
@@ -150,7 +147,6 @@ public class ARNavigationKit {
             for voxel in voxels {
                 if voxel.density < self.noiseLevel { continue }
                 if !redrawAll, self.alreadyRenderedVoxels.contains(voxel) { continue } // To increase rendering efficiency.
-                print(voxel.density)
                 let position = voxel.Position
                 let box = SCNBox(width: CGFloat(1 / voxel.scale.x), height: CGFloat(1 / voxel.scale.y), length: CGFloat(1 / voxel.scale.z), chamferRadius: 0)
                 box.firstMaterial?.diffuse.contents = position.y < (self.groundHeight ?? -10) + 0.3 ? UIColor.green :
@@ -194,30 +190,18 @@ public class ARNavigationKit {
     
     
     public func getMapData() -> Data {
-        let arr: [Voxel] = voxelSet.map({$0})
-        let data = Data(buffer: UnsafeBufferPointer(start: arr, count: arr.count))
+        let voxelArray: [Voxel] = voxelSet.map({$0})
+        let data = Data(buffer: UnsafeBufferPointer(start: voxelArray, count: voxelArray.count))
         return data
     }
     
     public func lodeMapFromData(_ data: Data){
         queue.async {
-            let num = data.count
-            let array = data.withUnsafeBytes {
-                Array(UnsafeBufferPointer<Voxel>(start: $0, count: num/MemoryLayout<Voxel>.stride))
+            let dataStride = data.count
+            let voxelArray = data.withUnsafeBytes {
+                Array(UnsafeBufferPointer<Voxel>(start: $0, count: dataStride/MemoryLayout<Voxel>.stride))
             }
-            array.forEach({self.voxelSet.insert($0)})
-        }
-    }
-    
-    public static func isMapData(_ data: Data) -> Bool {
-        do {
-            var test = false
-            if let _ = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? Set<Voxel> {
-                test = true
-            }
-            return test
-        } catch {
-            return false
+            voxelArray.forEach({self.voxelSet.insert($0)})
         }
     }
 
@@ -258,7 +242,6 @@ public class ARNavigationKit {
         for voxel in voxels {
             let row = Int((xmax - voxel.Position.x) * gridSize) + 1
             let column = Int((zmax - voxel.Position.z) * gridSize) + 1
-            print(voxel.density)
             if voxel.Position.y < (groundHeight ?? -10) + 0.3 {
                 graph[row][column] = 0
             } else if voxel.density > noiseLevel {
