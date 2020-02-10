@@ -25,6 +25,7 @@ public protocol ARNavigationKitDelegate: class {
 public enum filters: Int {
     case none = 0
     case ruste = 1
+    case removeSingle = 2
 }
 
 /// Description
@@ -140,12 +141,13 @@ public class ARNavigationKit {
 
     /// this method returns rendered note of the current Voxel map
     /// - Parameter redrawAll: option if only new Voxels should be returned or if a whole new Voxel map should be rendered.
-    public func getVoxelMap(redrawAll: Bool, completion: @escaping ([SCNNode]) -> Void) {
+    public func getVoxelMap(redrawAll: Bool,onlyObstacles: Bool, completion: @escaping ([SCNNode]) -> Void) {
         queue.async {
             var voxelNodes = [SCNNode]()
             let voxels = self.voxelSet
             for voxel in voxels {
-                if voxel.density < self.noiseLevel { continue }
+                if voxel.density < self.noiseLevel  { continue }
+                if onlyObstacles && voxel.Position.y < (self.groundHeight ?? -10) + 0.3 { continue }
                 if !redrawAll, self.alreadyRenderedVoxels.contains(voxel) { continue } // To increase rendering efficiency.
                 let position = voxel.Position
                 let box = SCNBox(width: CGFloat(1 / voxel.scale.x), height: CGFloat(1 / voxel.scale.y), length: CGFloat(1 / voxel.scale.z), chamferRadius: 0)
@@ -251,6 +253,8 @@ public class ARNavigationKit {
         switch filter {
             case .ruste:
                 return Mapfilters.mapRoasting(graph, kernel: CGSize(width: 2, height: 2))
+        case .removeSingle:
+            return Mapfilters.RemoveVoxleClustersOfSize(map: graph,size: 2)
             case .none:
                 return graph
         }

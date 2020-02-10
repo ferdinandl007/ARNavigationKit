@@ -59,4 +59,44 @@ class Mapfilters {
             }
         }
     }
+    
+    public static func RemoveVoxleClustersOfSize(map: [[Int]],size: Int) -> [[Int]] {
+        var maps = map
+        var count = 0
+        func countVoxleCluster(map: inout [[Int]],x: Int, y: Int) {
+            if !isValid(map: &map, x, y) || map[x][y] != 1 {
+                return
+            }
+            count += 1
+            countVoxleCluster(map: &map, x: x + 1, y: y)
+            countVoxleCluster(map: &map, x: x - 1, y: y)
+            countVoxleCluster(map: &map, x: x, y: y + 1)
+            countVoxleCluster(map: &map, x: x, y: y - 1)
+            countVoxleCluster(map: &map, x: x + 1, y: y + 1)
+            countVoxleCluster(map: &map, x: x + 1, y: y - 1)
+            countVoxleCluster(map: &map, x: x - 1, y: y + 1)
+            countVoxleCluster(map: &map, x: x - 1, y: y - 1)
+        }
+        
+        for x in 0 ..< maps.count {
+            for y in 0 ..< maps[x].count {
+                if maps[x][y] == 1 {
+                    countVoxleCluster(map: &maps, x: x, y: y)
+                    if count <= 2 {
+                        maps[x][y] = 2
+                    }
+                }
+            }
+        }
+        return maps
+    }
+    
+    
+    
+    private static func isValid(map: inout [[Int]], _ x: Int, _ y: Int) -> Bool {
+        return (x >= 0) && (x < map.count)
+            && (y >= 0) && (y < map.first!.count)
+    }
+    
+    
 }

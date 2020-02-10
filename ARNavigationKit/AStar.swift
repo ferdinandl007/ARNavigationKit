@@ -39,7 +39,6 @@ class AStar {
     private var open: Heap<Node>
     private var openSet: Set<Node>
     private var closed: Set<Node>
-    private var VisitedSet: Set<String> = []
     private var path: [Node]
     private var map: [[Int]]
     private var now: Node
@@ -120,19 +119,21 @@ class AStar {
                 if !diag && x != 0 && y != 0 {
                     continue // skip if diagonal movement is not allowed
                 }
-                node = Node(parent: now, position: CGPoint(x: now.position.xI + x, y: now.position.yI + y), g: now.g, h: distance(CGPoint(x: x, y: y)))
-                let move = getNNabers(arr: map, i: now.position.xI + x, j: now.position.yI + y, n: 1)
-                print(move)
+                let newX: Int = now.position.xI + x
+                let newY: Int = now.position.yI + y
+                node = Node(parent: now, position: CGPoint(x: newX, y: newY), g: now.g, h: distance(CGPoint(x: x, y: y)))
+                let move = getNNabers(arr: map, x: newX, y: newY, n: 1)
+                
                 if x != 0 || y != 0,
 //                    now.position.xI + x >= 0, now.position.xI + x < map.count, // check maze boundaries x
 //                    now.position.yI + y >= 0, now.position.yI + y < map[0].count,
-                    isValid(now.position.xI + x, now.position.yI + y),
+                    isValid(newX, newY),
 //                    map[now.position.xI + x][now.position.yI + y] != 1,// check if square is walkable
                     move,
                     !closed.contains(node), !openSet.contains(node) {
                     node.g = node.parent!.g + 1 // Horizontal/vertical cost = 1.0
-                    node.g += Double(map[now.position.xI + x][now.position.yI + y]) // add movement cost for this square
-                    node.g += map[now.position.xI + x][now.position.yI + y] == 2 ? 3 : 0
+                    node.g += Double(map[newX][newY]) // add movement cost for this square
+                    node.g += map[newX][newY] == 2 ? 3 : 0
                     // diagonal cost = sqrt(hor_cost² + vert_cost²)
                     // in this example the cost would be 12.2 instead of 11
                     if diag, x != 0, y != 0 {
@@ -147,24 +148,23 @@ class AStar {
     }
     
     
-    private func getNNabers(arr:[[Int]],i: Int,j: Int,n: Int) -> Bool {
-        if !isValid(i, j) {
+    private func getNNabers(arr:[[Int]],x: Int,y: Int,n: Int) -> Bool {
+        if !isValid(x, y) || arr[x][y] == 1 {
             return false
         }
-        if arr[i][j] == 1 {
-            return false
-        }
+        
         if n == 0 {
             return true
         }
-        return (getNNabers(arr: arr, i: i + 1, j: j, n: n - 1) &&
-            getNNabers(arr: arr, i: i - 1, j: j, n: n - 1) &&
-            getNNabers(arr: arr, i: i, j: j + 1, n: n - 1) &&
-            getNNabers(arr: arr, i: i, j: j - 1, n: n - 1))
+        
+        return (getNNabers(arr: arr, x: x + 1, y: y, n: n - 1) &&
+            getNNabers(arr: arr, x: x - 1, y: y, n: n - 1) &&
+            getNNabers(arr: arr, x: x, y: y + 1, n: n - 1) &&
+            getNNabers(arr: arr, x: x, y: y - 1, n: n - 1))
     }
 
-    private func isValid(_ row: Int, _ col: Int) -> Bool {
-        return (row >= 0) && (row < map.count)
-            && (col >= 0) && (col < map.first!.count)
+    private func isValid(_ x: Int, _ y: Int) -> Bool {
+        return (x >= 0) && (x < map.count)
+            && (y >= 0) && (y < map.first!.count)
     }
 }
