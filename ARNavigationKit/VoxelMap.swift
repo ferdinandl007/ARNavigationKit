@@ -21,7 +21,7 @@ public protocol ARNavigationKitDelegate: class {
     /// - Parameter path: path description
     func getPathupdate(_ path: [vector_float3]?)
 }
-
+/// Description
 public enum filters: Int {
     case none = 0
     case ruste = 1
@@ -61,7 +61,7 @@ public class ARNavigationKit {
     
     
     public init(data: Data,_ VoxelGridCellSize: Float) {
-        gridSize = VoxelGridCellSize
+        gridSize = 1 / VoxelGridCellSize
         lodeMapFromData(data)
     }
 
@@ -227,7 +227,6 @@ public class ARNavigationKit {
 
     private func makeGraph() -> [[Int]]? {
         setMinMax()
-        //let voxels = self.voxelSet
         guard let xmax = xMax else { return nil }
         guard let xmin = xMin else { return nil }
         guard let zmax = zMax else { return nil }
