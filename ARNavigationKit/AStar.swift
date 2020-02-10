@@ -39,6 +39,7 @@ class AStar {
     private var open: Heap<Node>
     private var openSet: Set<Node>
     private var closed: Set<Node>
+    private var VisitedSet: Set<String> = []
     private var path: [Node]
     private var map: [[Int]]
     private var now: Node
@@ -120,11 +121,14 @@ class AStar {
                     continue // skip if diagonal movement is not allowed
                 }
                 node = Node(parent: now, position: CGPoint(x: now.position.xI + x, y: now.position.yI + y), g: now.g, h: distance(CGPoint(x: x, y: y)))
-
+                let move = getNNabers(arr: map, i: now.position.xI + x, j: now.position.yI + y, n: 1)
+                print(move)
                 if x != 0 || y != 0,
-                    now.position.xI + x >= 0, now.position.xI + x < map.count, // check maze boundaries x
-                    now.position.yI + y >= 0, now.position.yI + y < map[0].count,
-                    map[now.position.xI + x][now.position.yI + y] != 1, // check if square is walkable
+//                    now.position.xI + x >= 0, now.position.xI + x < map.count, // check maze boundaries x
+//                    now.position.yI + y >= 0, now.position.yI + y < map[0].count,
+                    isValid(now.position.xI + x, now.position.yI + y),
+//                    map[now.position.xI + x][now.position.yI + y] != 1,// check if square is walkable
+                    move,
                     !closed.contains(node), !openSet.contains(node) {
                     node.g = node.parent!.g + 1 // Horizontal/vertical cost = 1.0
                     node.g += Double(map[now.position.xI + x][now.position.yI + y]) // add movement cost for this square
@@ -140,6 +144,23 @@ class AStar {
                 }
             }
         }
+    }
+    
+    
+    private func getNNabers(arr:[[Int]],i: Int,j: Int,n: Int) -> Bool {
+        if !isValid(i, j) {
+            return false
+        }
+        if arr[i][j] == 1 {
+            return false
+        }
+        if n == 0 {
+            return true
+        }
+        return (getNNabers(arr: arr, i: i + 1, j: j, n: n - 1) &&
+            getNNabers(arr: arr, i: i - 1, j: j, n: n - 1) &&
+            getNNabers(arr: arr, i: i, j: j + 1, n: n - 1) &&
+            getNNabers(arr: arr, i: i, j: j - 1, n: n - 1))
     }
 
     private func isValid(_ row: Int, _ col: Int) -> Bool {
