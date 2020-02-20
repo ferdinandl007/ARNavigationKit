@@ -191,12 +191,15 @@ public class ARNavigationKit {
     }
     
     
+    /// <#Description#>
     public func getMapData() -> Data {
         let voxelArray: [Voxel] = voxelSet.map({$0})
         let data = Data(buffer: UnsafeBufferPointer(start: voxelArray, count: voxelArray.count))
         return data
     }
     
+    /// Description
+    /// - Parameter data: data description
     public func lodeMapFromData(_ data: Data){
         queue.async {
             let dataStride = data.count
@@ -243,7 +246,7 @@ public class ARNavigationKit {
         for voxel in voxels {
             let row = Int((xmax - voxel.Position.x) * gridSize) + 1
             let column = Int((zmax - voxel.Position.z) * gridSize) + 1
-            if voxel.Position.y < (groundHeight ?? -10) + 0.3 {
+            if voxel.Position.y < (groundHeight ?? -10) + 0.2 {
                 graph[row][column] = 0
             } else if voxel.density > noiseLevel {
                 graph[row][column] = 1
@@ -253,11 +256,12 @@ public class ARNavigationKit {
         switch filter {
             case .ruste:
                 return Mapfilters.mapRoasting(graph, kernel: CGSize(width: 2, height: 2))
-        case .removeSingle:
-            return Mapfilters.RemoveVoxleClustersOfSize(map: graph,size: 2)
+            case .removeSingle:
+                return Mapfilters.removeVoxleClustersOfSize(map: graph,size: 2)
             case .none:
                 return graph
         }
+        
     }
 
     /// Generate a geometry point cloud out of current Vertices.
@@ -285,7 +289,7 @@ public class ARNavigationKit {
         let pointsGeometry = SCNGeometry(sources: [source], elements: [element])
 
         let material = SCNMaterial()
-        material.diffuse.contents = getRandomColoer()
+        material.diffuse.contents = UIColor.white
         material.isDoubleSided = true
         material.locksAmbientWithDiffuse = true
 
