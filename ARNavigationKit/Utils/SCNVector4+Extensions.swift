@@ -1,10 +1,3 @@
-//
-//  SCNVector4+Extensions.swift
-//  ARMeasure
-//
-//  Created by William Perkins on 8/14/17.
-//  Copyright © 2017 Laan Labs. All rights reserved.
-//
 
 import SceneKit
 

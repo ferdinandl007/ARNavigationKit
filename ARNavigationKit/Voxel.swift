@@ -9,7 +9,7 @@
 import Foundation
 import simd
 
-class Voxel: Hashable, Codable {
+struct Voxel: Hashable, Codable {
     var Position: vector_float3
     var density: Int
     var scale: vector_float3

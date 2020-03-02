@@ -1,3 +1,11 @@
+//
+//  AStar.swift
+//  AStar
+//
+//  Created by Ferdinand Lösch on 09/12/2019.
+//  Copyright © 2019 Ferdinand Lösch. All rights reserved.
+//
+
 import Foundation
 import UIKit
 
@@ -44,13 +52,15 @@ class AStar {
     private var now: Node
     private var start: CGPoint
     private var end: CGPoint
-    private var diag: Bool
+    private let diag: Bool
+    private let nearestNeighbour: Int
 
-    init(map: [[Int]], start: CGPoint, diag: Bool) {
+    init(map: [[Int]], start: CGPoint, diag: Bool,nearestNeighbour: Int) {
         open = Heap<Node>(sort: <)
         closed = Set<Node>()
         path = []
         self.map = map
+        self.nearestNeighbour = nearestNeighbour
         now = Node(parent: nil, position: start, g: 0, h: 0)
         self.start = start
         end = CGPoint()
@@ -72,13 +82,13 @@ class AStar {
         // If the destination is out of range.
         if !isValid(end.xI, end.yI) {
             print("Destination is invalid")
-            return []
+            return nil
         }
 
         // destination is blocked.
         if map[end.xI][end.yI] == 1 {
             print("destination is blocked")
-            return []
+            return nil
         }
 
         self.end = end
@@ -102,10 +112,8 @@ class AStar {
         return path
     }
 
-    /// Calulate distance between this.now and xend/yend
-    /// -@return (int) distance
     private func distance(_ point: CGPoint) -> Double {
-        if diag { // if diagonal movement is alloweed
+        if diag { // if diagonal movement is alloweed.
             return sqrt(pow((now.position.xD + point.xD) - end.xD, 2) + pow((now.position.yD + point.yD) - end.yD, 2)) // return hypothenuse
         } else {
             return abs((now.position.xD + point.xD) - end.xD) + abs((now.position.yD + point.yD) - end.yD) // else return "Manhattan distance
@@ -117,22 +125,29 @@ class AStar {
         for x in -1 ... 1 {
             for y in -1 ... 1 {
                 if !diag && x != 0 && y != 0 {
-                    continue // skip if diagonal movement is not allowed
+                    continue // skip if diagonal movement is not allowed.
                 }
-                node = Node(parent: now, position: CGPoint(x: now.position.xI + x, y: now.position.yI + y), g: now.g, h: distance(CGPoint(x: x, y: y)))
-
+                let newX: Int = now.position.xI + x
+                let newY: Int = now.position.yI + y
+                node = Node(parent: now, position: CGPoint(x: newX, y: newY), g: now.g, h: distance(CGPoint(x: x, y: y)))
+                let move = getNNabers(arr: map, x: newX, y: newY, n: 1).0
+                
                 if x != 0 || y != 0,
-                    now.position.xI + x >= 0, now.position.xI + x < map.count, // check maze boundaries x
-                    now.position.yI + y >= 0, now.position.yI + y < map[0].count,
-                    map[now.position.xI + x][now.position.yI + y] != 1, // check if square is walkable
+                    isValid(newX, newY),move,
                     !closed.contains(node), !openSet.contains(node) {
-                    node.g = node.parent!.g + 1 // Horizontal/vertical cost = 1.0
-                    node.g += Double(map[now.position.xI + x][now.position.yI + y]) // add movement cost for this square
-                    node.g += map[now.position.xI + x][now.position.yI + y] == 2 ? 3 : 0
-                    // diagonal cost = sqrt(hor_cost² + vert_cost²)
-                    // in this example the cost would be 12.2 instead of 11
+                    guard let currentParent = node.parent else { continue }
+                    node.g = currentParent.g + 1 // Horizontal/vertical cost = 1.0.
+                    node.g += Double(map[newX][newY]) // add movement cost for this square.
+                    node.g += map[newX][newY] == 2 ? 3 : 0
+                    
+                    // Ensures a safe boundary around obstacles if possible.
+                    let gAdd  = getNNabers(arr: map, x: newX, y: newY, n: nearestNeighbour)
+                    if !gAdd.0 {
+                        node.g += 5.0 - Double(gAdd.1)
+                    }
+                    
                     if diag, x != 0, y != 0 {
-                        node.g += 0.4 // Diagonal movement cost = 1.4
+                        node.g += 0.4 // Diagonal movement cost = 1.4.
                     }
 
                     open.insert(value: node)
@@ -141,9 +156,29 @@ class AStar {
             }
         }
     }
+    
+    
+    private func getNNabers(arr:[[Int]],x: Int,y: Int,n: Int) -> (Bool,Int) {
+        if !isValid(x, y) || arr[x][y] == 1 {
+            return (false , n)
+        }
+        
+        if n == 0 {
+            return (true, n)
+        }
+        let r1 = getNNabers(arr: arr, x: x + 1, y: y, n: n - 1)
+        let r2 = getNNabers(arr: arr, x: x - 1, y: y, n: n - 1)
+        let r3 = getNNabers(arr: arr, x: x, y: y + 1, n: n - 1)
+        let r4 = getNNabers(arr: arr, x: x, y: y - 1, n: n - 1)
+        
+        let minR = [r1.1,r2.1,r3.1,r4.1].min() ?? n
+        let boolR = r1.0 && r2.0 && r3.0 && r4.0
+        return (boolR,minR)
+    }
 
-    private func isValid(_ row: Int, _ col: Int) -> Bool {
-        return (row >= 0) && (row < map.count)
-            && (col >= 0) && (col < map.first!.count)
+    private func isValid(_ x: Int, _ y: Int) -> Bool {
+        guard let inerList =  map.first else { return false }
+        return (x >= 0) && (x < map.count)
+            && (y >= 0) && (y < inerList.count)
     }
 }

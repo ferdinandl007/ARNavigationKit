@@ -1,14 +1,8 @@
-//
-//  SCNCodables.swift
-//  HomeRobot
-//
-//  Created by cc on 6/2/18.
-//  Copyright © 2018 Laan Labs. All rights reserved.
-//
+
 
 import Foundation
 import SceneKit
-
+import simd
 extension SCNVector3: Codable {
     public init(from decoder: Decoder) throws {
         var container = try decoder.unkeyedContainer()
@@ -25,6 +19,8 @@ extension SCNVector3: Codable {
         try container.encode(z)
     }
 }
+
+
 
 extension SCNMatrix4: Codable {
     public init(from decoder: Decoder) throws {
