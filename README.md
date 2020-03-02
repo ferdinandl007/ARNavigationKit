@@ -11,3 +11,107 @@ Aims to provide a framework for navigation in AR
 Please note this is still a work in progress with final release sometime in the Spring of 2020
 This AR navigation kit is related to my bachelor thesis on autonomous indoor robotson so unfortunately I cannot accept any pull requests at this time
 Once its final and working correctly I will also add documentation to make this easy to integrate into your project.
+
+
+## Example
+
+To run the [CocoaPods](https://github.com/ferdinandl007/voxelMap). project, clone the repo, and run `pod install` from the Example directory first.
+
+## Requirements
+
+iOS 10.0+    
+Xcode 10.0+   
+Swift 4.2+     
+And ARkit enabled device
+
+
+## Installation
+
+ARNavigationKit is available through [CocoaPods](https://cocoapods.org). To install
+it, simply add the following line to your Podfile:
+
+```ruby
+pod 'ARNavigationKit','~> 0.1.0'
+```
+
+
+## Usage
+
+import the following.
+ ```Swift
+   import ARNavigationKit
+  ```
+ When initialising the ARNavigationKit, I recommend a voxel size of 7cm when dealing with single room application. 
+ However you may want to increase the grit size for larger maps to reduce computation  when computing Paths. 
+   ```Swift
+   let voxelMap = ARNavigationKit(VoxelGridCellSize: 0.07)
+  ```
+   Once your a session is running capture the feature points and add them into the map as follows.
+   10Hz should be sufficient to capture a good map and reduce computation to a minimum.
+   
+   ```Swift
+        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+            guard let currentFrame = self.augmentedRealitySession.currentFrame,
+                let featurePointsArray = currentFrame.rawFeaturePoints?.points else { return }
+            self.voxelMap.addVoxels(featurePointsArray)
+        }
+    ```
+    ARNavigationKit needs to know about the  round height to detect obstacles update the ground hide by  
+    ```Swift
+    extension ViewController: ARSCNViewDelegate {
+         func renderer(_: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+            guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
+            voxelMap.updateGroundPlane(planeAnchor)
+         }
+
+         func renderer(_: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
+            guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
+            voxelMap.updateGroundPlane(planeAnchor)
+         }
+     }
+    ```
+
+```Swift
+class ViewController: UIViewController {
+
+   override func viewDidLoad() {
+       super.viewDidLoad()
+
+        // Create a UIButton 
+        var btnReaction = UIButton(frame: CGRect(x: 100, y: 300, width: 200, height: 30))
+        btnReaction.setTitle("Long Press here", for: .normal)
+        btnReaction.setTitleColor(UIColor.red, for: .normal)
+        view.addSubview(btnReaction)
+
+       var reactionView = ReactionView()
+       let reactions: [Reaction] = [Reaction(title: "Laugh", imageName: "icn_laugh"),
+                            Reaction(title: "Like", imageName: "icn_like"),
+                            Reaction(title: "Angry", imageName: "icn_angry"),
+                            Reaction(title: "Love", imageName: "icn_love"),
+                            Reaction(title: "Sad", imageName: "icn_sad")]
+        
+        reactionView.initialize(delegate: self , reactionsArray: reactions, sourceView: self.view, gestureView: btnReaction)
+    }
+ }
+
+//MARK: - FacebookLikeReactionDelegate
+extension ViewController: FacebookLikeReactionDelegate {
+    
+    func selectedReaction(reaction: Reaction) {
+        print("Selected-------\(reaction.title)")
+    }
+}
+```
+
+
+## Author
+
+[Ferdinand Loesch](https://ferdinandl007.github.io), ferdinandloesch@gmail.com
+
+## License
+
+ARNavigationKit is available under the MIT license. See the LICENSE file for more info.
+
+
+
+
