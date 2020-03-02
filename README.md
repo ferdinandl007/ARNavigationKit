@@ -50,14 +50,14 @@ ARNavigationKit needs to know about the ground height to detect obstacles, there
 
 ```Swift
 extension ViewController: ARSCNViewDelegate {
-	func renderer(_: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-  		guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
-      voxelMap.updateGroundPlane(planeAnchor)
+  func renderer(_: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+       guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
+       voxelMap.updateGroundPlane(planeAnchor)
   }
 
   func renderer(_: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
        guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
-        voxelMap.updateGroundPlane(planeAnchor)
+       voxelMap.updateGroundPlane(planeAnchor)
    }
 }
 ```
