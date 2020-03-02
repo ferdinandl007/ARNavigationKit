@@ -41,68 +41,37 @@ import the following.
  ```Swift
    import ARNavigationKit
   ```
- When initialising the ARNavigationKit, I recommend a voxel size of 7cm when dealing with single room application. 
- However you may want to increase the grit size for larger maps to reduce computation  when computing Paths. 
-   ```Swift
-   let voxelMap = ARNavigationKit(VoxelGridCellSize: 0.07)
-  ```
-   Once your a session is running capture the feature points and add them into the map as follows.
-   10Hz should be sufficient to capture a good map and reduce computation to a minimum.
+When initialising the ARNavigationKit, I recommend a voxel size of 7cm when dealing with single room application. 
+However you may want to increase the grit size for larger maps to reduce computation  when computing Paths. 
+```Swift
+let voxelMap = ARNavigationKit(VoxelGridCellSize: 0.07)
+```
+Once your a session is running capture the feature points and add them into the map as follows.
+10Hz should be sufficient to capture a good map and reduce computation to a minimum.
    
-   ```Swift
-        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            guard let currentFrame = self.augmentedRealitySession.currentFrame,
-                let featurePointsArray = currentFrame.rawFeaturePoints?.points else { return }
-            self.voxelMap.addVoxels(featurePointsArray)
-        }
-    ```
-    ARNavigationKit needs to know about the  round height to detect obstacles update the ground hide by  
-    ```Swift
-    extension ViewController: ARSCNViewDelegate {
-         func renderer(_: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-            guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
-            voxelMap.updateGroundPlane(planeAnchor)
-         }
-
-         func renderer(_: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
-            guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
-            voxelMap.updateGroundPlane(planeAnchor)
-         }
-     }
-    ```
+ ```Swift
+    Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+         guard let currentFrame = self.augmentedRealitySession.currentFrame,
+         let featurePointsArray = currentFrame.rawFeaturePoints?.points else { return }
+          self.voxelMap.addVoxels(featurePointsArray)
+    }
+ ```
+##ARNavigationKit needs to know about the ground height to detect obstacles, therefore use
 
 ```Swift
-class ViewController: UIViewController {
+	 extension ViewController: ARSCNViewDelegate {
+      func renderer(_: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+         guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
+         voxelMap.updateGroundPlane(planeAnchor)
+       }
 
-   override func viewDidLoad() {
-       super.viewDidLoad()
-
-        // Create a UIButton 
-        var btnReaction = UIButton(frame: CGRect(x: 100, y: 300, width: 200, height: 30))
-        btnReaction.setTitle("Long Press here", for: .normal)
-        btnReaction.setTitleColor(UIColor.red, for: .normal)
-        view.addSubview(btnReaction)
-
-       var reactionView = ReactionView()
-       let reactions: [Reaction] = [Reaction(title: "Laugh", imageName: "icn_laugh"),
-                            Reaction(title: "Like", imageName: "icn_like"),
-                            Reaction(title: "Angry", imageName: "icn_angry"),
-                            Reaction(title: "Love", imageName: "icn_love"),
-                            Reaction(title: "Sad", imageName: "icn_sad")]
-        
-        reactionView.initialize(delegate: self , reactionsArray: reactions, sourceView: self.view, gestureView: btnReaction)
-    }
- }
-
-//MARK: - FacebookLikeReactionDelegate
-extension ViewController: FacebookLikeReactionDelegate {
-    
-    func selectedReaction(reaction: Reaction) {
-        print("Selected-------\(reaction.title)")
-    }
-}
+       func renderer(_: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
+       		guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
+          voxelMap.updateGroundPlane(planeAnchor)
+        }
+     }
 ```
-
+ddfw
 
 ## Author
 
