@@ -43,9 +43,9 @@ Once your a session is running capture the feature points and add them into the 
    
  ```Swift
  Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
- 				guard let currentFrame = self.augmentedRealitySession.currentFrame,
-        let featurePointsArray = currentFrame.rawFeaturePoints?.points else { return }
-        self.voxelMap.addVoxels(featurePointsArray)
+     guard let currentFrame = self.augmentedRealitySession.currentFrame,
+     let featurePointsArray = currentFrame.rawFeaturePoints?.points else { return }
+     self.voxelMap.addVoxels(featurePointsArray)
  }
  ```
 ARNavigationKit needs to know about the ground height to detect obstacles, therefore use
