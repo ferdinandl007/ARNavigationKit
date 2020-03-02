@@ -79,14 +79,14 @@ voxelMap.getPath(start: SCNVector3, end: SCNVector3)
 
  As Path calculation can take some time, a delegate method is called once the calculation is complete.
 ```Swift
-   extension ViewController: ARNavigationKitDelegate {
-    	func getPathupdate(_ path: [vector_float3]?) {
-    	}
-
-    	func updateDebugView(_ View: UIView) {
-
-    	}
+extension ViewController: ARNavigationKitDelegate {
+   func getPathupdate(_ path: [vector_float3]?) {
     }
+
+    	
+   func updateDebugView(_ View: UIView) {
+   }
+}
 ```
 
 ## Author
