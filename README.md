@@ -4,8 +4,8 @@ ARNavigationKit Aims to provide easy-to-use path planning For ARKit.
 
 ## Example
 
-To run the [Example project](https://github.com/ferdinandl007/voxelMap), clone the repo, and run `pod install` from the Example directory first.
-[https://www.youtube.com/watch?v=v-9B6HPRNEA](Sample project and use case)
+To run the [Example project](https://github.com/ferdinandl007/voxelMap), clone the repo, and run `pod install`
+[Example project for a ARKit Robot With path planning capabilities.](https://youtu.be/v-9B6HPRNEA)
 ## Requirements
 
 iOS 10.0+    
