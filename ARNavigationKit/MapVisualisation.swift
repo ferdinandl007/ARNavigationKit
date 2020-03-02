@@ -1,5 +1,5 @@
 //
-//  "MapVisualisation.swift
+//  MapVisualisation.swift
 //  voxelMap
 //
 //  Created by Ferdinand Lösch on 11/11/2019.

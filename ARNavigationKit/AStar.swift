@@ -1,3 +1,11 @@
+//
+//  AStar.swift
+//  AStar
+//
+//  Created by Ferdinand Lösch on 09/12/2019.
+//  Copyright © 2019 Ferdinand Lösch. All rights reserved.
+//
+
 import Foundation
 import UIKit
 
@@ -44,13 +52,15 @@ class AStar {
     private var now: Node
     private var start: CGPoint
     private var end: CGPoint
-    private var diag: Bool
+    private let diag: Bool
+    private let nearestNeighbour: Int
 
-    init(map: [[Int]], start: CGPoint, diag: Bool) {
+    init(map: [[Int]], start: CGPoint, diag: Bool,nearestNeighbour: Int) {
         open = Heap<Node>(sort: <)
         closed = Set<Node>()
         path = []
         self.map = map
+        self.nearestNeighbour = nearestNeighbour
         now = Node(parent: nil, position: start, g: 0, h: 0)
         self.start = start
         end = CGPoint()
@@ -131,7 +141,7 @@ class AStar {
                     node.g += map[newX][newY] == 2 ? 3 : 0
                     
                     // Ensures a safe boundary around obstacles if possible.
-                    let gAdd  = getNNabers(arr: map, x: newX, y: newY, n: 4)
+                    let gAdd  = getNNabers(arr: map, x: newX, y: newY, n: nearestNeighbour)
                     if !gAdd.0 {
                         node.g += 5.0 - Double(gAdd.1)
                     }

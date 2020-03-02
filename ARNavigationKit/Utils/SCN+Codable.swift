@@ -1,10 +1,4 @@
-//
-//  SCNCodables.swift
-//  HomeRobot
-//
-//  Created by cc on 6/2/18.
-//  Copyright © 2018 Laan Labs. All rights reserved.
-//
+
 
 import Foundation
 import SceneKit
