@@ -1,9 +1,6 @@
 # ARNavigationKit
 ARNavigationKit Aims to provide easy-to-use path planning For ARKit.
 
-   source 'https://github.com/ferdinandl007/ARNavigationKitPodSpecs.git'
-
-   pod 'ARNavigationKit','~> 0.1.0'
 
 ## Example
 
@@ -23,6 +20,7 @@ ARNavigationKit is available through [CocoaPods](https://cocoapods.org). To inst
 it, simply add the following line to your Podfile:
 
 ```ruby
+source 'https://github.com/ferdinandl007/ARNavigationKitPodSpecs.git'
 pod 'ARNavigationKit','~> 0.1.0'
 ```
 
