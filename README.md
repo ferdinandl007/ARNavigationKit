@@ -56,7 +56,7 @@ Once your a session is running capture the feature points and add them into the 
           self.voxelMap.addVoxels(featurePointsArray)
     }
  ```
-##ARNavigationKit needs to know about the ground height to detect obstacles, therefore use
+ARNavigationKit needs to know about the ground height to detect obstacles, therefore use
 
 ```Swift
 	 extension ViewController: ARSCNViewDelegate {
@@ -71,7 +71,23 @@ Once your a session is running capture the feature points and add them into the 
         }
      }
 ```
-ddfw
+To request past use
+
+```Swift
+   voxelMap.getPath(start: SCNVector3, end: SCNVector3)
+```
+
+ As Path calculation can take some time, a delegate method is called once the calculation is complete.
+```Swift
+   extension ViewController: ARNavigationKitDelegate {
+    	func getPathupdate(_ path: [vector_float3]?) {
+    	}
+
+    	func updateDebugView(_ View: UIView) {
+
+    	}
+    }
+```
 
 ## Author
 
