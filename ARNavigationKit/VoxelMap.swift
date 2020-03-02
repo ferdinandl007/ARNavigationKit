@@ -12,7 +12,6 @@ import GameplayKit
 import simd
 import UIKit
 
-/// Description
 public protocol ARNavigationKitDelegate: class {
     ///   Returns a UIView object of the current navigation map once computation is complete
     /// - Parameter View: navigation map
