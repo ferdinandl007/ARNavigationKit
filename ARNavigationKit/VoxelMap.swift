@@ -49,6 +49,8 @@ public class ARNavigationKit {
     
     /// Set filter option for map  processing.
     public var filter: filters = .none
+    
+    public var allowDiagonalMovement = true
 
     /// Delegate  required for callbacks.
     public weak var arNavigationKitDelegate: ARNavigationKitDelegate?
@@ -133,7 +135,7 @@ public class ARNavigationKit {
             guard let zmax = self.zMax else { return }
             let _start = self.vectorToIndex(start)
             let _end = self.vectorToIndex(end)
-            let aStar = AStar(map: map, start: _start, diag: true, nearestNeighbour: self.obstacleBufferForPath)
+            let aStar = AStar(map: map, start: _start, diag: allowDiagonalMovement, nearestNeighbour: self.obstacleBufferForPath)
             let path = aStar.findPathTo(end: _end)?.map { (pathNode) -> vector_float3 in
                 
                 let row = Float(pathNode.position.xD)
@@ -198,7 +200,7 @@ public class ARNavigationKit {
             let _start = self.vectorToIndex(start)
             let _end = self.vectorToIndex(end)
 
-            let aStar = AStar(map: map, start: _start, diag: false, nearestNeighbour: self.obstacleBufferForPath)
+            let aStar = AStar(map: map, start: _start, diag: allowDiagonalMovement, nearestNeighbour: self.obstacleBufferForPath)
             guard let path = aStar.findPathTo(end: _end) else { return }
             path.forEach { map[$0.position.xI][$0.position.yI] = map[$0.position.xI][$0.position.yI] == 1 ? 4 : 3 }
             DispatchQueue.main.async {
