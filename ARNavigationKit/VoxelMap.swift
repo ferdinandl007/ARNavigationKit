@@ -42,7 +42,7 @@ public class ARNavigationKit {
     private var alreadyRenderedVoxels = Set<Voxel>()
 
     /// Set minimum noise level to be considered voxel.
-    public var noiseLevel = 5
+    public var noiseLevel = 12
     
     /// Sets the Buffer between the nearest obstacles in the path.
     public var obstacleBufferForPath = 5
