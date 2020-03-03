@@ -21,7 +21,7 @@ it, simply add the following line to your Podfile:
 
 ```ruby
 source 'https://github.com/ferdinandl007/ARNavigationKitPodSpecs.git'
-pod 'ARNavigationKit','~> 0.1.0'
+pod 'ARNavigationKit','~> 1.0.0'
 ```
 
 
