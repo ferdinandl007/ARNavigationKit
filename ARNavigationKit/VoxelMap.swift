@@ -99,7 +99,7 @@ public class ARNavigationKit {
         vectors.forEach { addVoxel($0) }
     }
 
-    /// method to be called every time a new  horizontal plane is detected.
+    /// Method to be called every time a new  horizontal plane is detected.
     /// - Parameter plane: ARPlaneAnchor of the horizontal plane
     public func updateGroundPlane(_ plane: ARPlaneAnchor) {
         queue.async {
