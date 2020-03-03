@@ -35,6 +35,7 @@ When initialising the ARNavigationKit, I recommend a voxel size of 7cm when deal
 However you may want to increase the grit size for larger maps to reduce computation  when computing Paths. 
 ```Swift
 let voxelMap = ARNavigationKit(VoxelGridCellSize: 0.07)
+voxelMap.arNavigationKitDelegate = self
 ```
 Once your a session is running capture the feature points and add them into the map as follows.
 10Hz should be sufficient to capture a good map and reduce computation to a minimum.
