@@ -67,7 +67,7 @@ extension ViewController: ARSCNViewDelegate {
    }
 }
 ```
-To request a past.
+To request a path.
 
 ```Swift
 voxelMap.getPath(start: SCNVector3, end: SCNVector3)
