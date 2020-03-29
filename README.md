@@ -1,5 +1,10 @@
 # ARNavigationKit
-ARNavigationKit Aims to provide easy-to-use path planning For ARKit.
+ARNavigationKit Aims to provide easy-to-use path planning For ARKit. By automatically creating dynamic navigational maps during runtime.
+
+
+
+<img src="https://github.com/ferdinandl007/ARNavigationKit/blob/master/IMG_5464%203.png" width="200"> <img src="https://github.com/ferdinandl007/ARNavigationKit/blob/master/IMG_5468%202.png" width="200"> <img src="https://github.com/ferdinandl007/ARNavigationKit/blob/master/IMG_5476.png" width="200">
+
 
 
 ## Example
