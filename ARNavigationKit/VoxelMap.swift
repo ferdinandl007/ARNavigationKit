@@ -8,9 +8,9 @@
 
 import ARKit
 import Foundation
-import GameplayKit
 import simd
 import UIKit
+import RealityKit
 
 public protocol ARNavigationKitDelegate: class {
     ///   Returns a UIView object of the current navigation map once computation is complete
@@ -27,9 +27,15 @@ public enum filters: Int {
     case removeSingle = 2
 }
 
-
+/**
+ A configuration for running world tracking.
+ 
+ @discussion World tracking provides 6 degrees of freedom tracking of the device.
+ By finding feature points in the scene, world tracking enables performing hit-tests against the frame.
+ Tracking can no longer be resumed once the session is paused.
+ */
 public class ARNavigationKit {
-    private let queue = DispatchQueue(label: "Voxel")
+    private let queue = DispatchQueue(label: "com.ferdinand.ARNavigationKit")
     private var voxelSet = Set<Voxel>()
     private var gridSize: Float!
     private var groundHeight: Float?
@@ -62,12 +68,12 @@ public class ARNavigationKit {
         groundHeightOffSet = VoxelGridCellSize * 2
         
     }
+    
     /// Default initialiser.
     public init() {
         gridSize = 10
         groundHeightOffSet =  (1 / gridSize) * 2
     }
-    
     
     /// Use this initialiser when initialising a Voxle map from a data object.
     /// - Parameters:
@@ -78,11 +84,27 @@ public class ARNavigationKit {
         groundHeightOffSet = VoxelGridCellSize * 2
         lodeMapFromData(data)
     }
+    
+    ///  Generates a new navigational map from ARMeshAnchors recommended on devices with LIDAR scanner for improved performance.
+    ///  Use this method on devices which support LIDAR scanner instead  generating the map  from the point cloud.
+    ///  Additionally  it is recommended to set the noiseLevel to 1 when  generating a map from mesh.
+    ///  Available form ios 13.4
+    /// - Parameters:
+    ///   - meshs: [ARMeshAnchor]
+    @available(iOS 13.4, *)
+    public func generatingMapFromMesh(_ meshs: [ARMeshAnchor]) {
+        queue.sync { [weak self] in
+            voxelSet = Set<Voxel>()
+            let verticesPositions = meshs.flatMap { ARNavigationKit.vertexToWorldSpace($0) }
+            self?.addVoxels(verticesPositions)
+        }
+    }
 
     /// Method to add individual feature points into the voxle map.
     /// - Parameter vector: X,Y,Z vector in metres
     public func addVoxel(_ vector: vector_float3) {
-        queue.async {
+        queue.sync { [weak self] in
+            guard let self = self else { return }
             let voxel = Voxel(vector: self.normaliseVector(vector), scale: vector_float3(self.gridSize, self.gridSize, self.gridSize), density: 1)
             if self.voxelSet.contains(voxel) {
                 guard var newVoxel = self.voxelSet.remove(voxel) else { return }
@@ -104,14 +126,16 @@ public class ARNavigationKit {
     /// Method to be called every time a new  horizontal plane is detected.
     /// - Parameter plane: ARPlaneAnchor of the horizontal plane
     public func updateGroundPlane(_ plane: ARPlaneAnchor) {
-        queue.async {
+        queue.sync { [weak self] in
+            guard let self = self else { return }
             self.groundHeight = min(plane.transform.columns.3.y, self.groundHeight ?? Float(Int.max))
         }
     }
 
     /// Callback method to receive rendered SCNNode of the current point cloud.
     public func getPointCloudNode(completion: @escaping (SCNNode) -> Void) {
-        queue.async {
+        queue.sync { [weak self] in
+            guard let self = self else { return }
             let points = self.voxelSet.map { SIMD3<Float>($0.Position) }
 
             let featurePointsGeometry = self.pointCloudGeometry(for: points)
@@ -128,7 +152,8 @@ public class ARNavigationKit {
     ///   - start: The starting Vector from where Path planning should begin.
     ///   - end:  The vector of the destination.
     public func getPath(start: SCNVector3, end: SCNVector3) {
-        queue.async {
+        queue.sync { [weak self] in
+            guard let self = self else { return }
             self.setMinMax()
             guard let map = self.makeGraph() else { return }
             guard let xmax = self.xMax else { return }
@@ -147,8 +172,8 @@ public class ARNavigationKit {
                 return vector_float3(x: x, y: pathHeight, z: z)
             }
 
-            DispatchQueue.main.async {
-                self.arNavigationKitDelegate?.getPathupdate(path)
+            DispatchQueue.main.async { [weak self] in
+                self?.arNavigationKitDelegate?.getPathupdate(path)
             }
         }
     }
@@ -159,7 +184,8 @@ public class ARNavigationKit {
     ///  - Parameter onlyObstacles: option if true will only return Voxle Nodes of obstacles.
     ///  - Parameter completion:  callback  returns SCNNode of Voxles.
     public func getVoxelMap(redrawAll: Bool,onlyObstacles: Bool, completion: @escaping ([SCNNode]) -> Void) {
-        queue.async {
+        queue.async { [weak self] in
+            guard let self = self else { return }
             var voxelNodes = [SCNNode]()
             let voxels = self.voxelSet
             for voxel in voxels {
@@ -182,9 +208,9 @@ public class ARNavigationKit {
     /// Requests the current navigational map used for path planning.
     /// Use the ARNavigationKitDelegate (updateDebugView) delegate method to receive the rendered navigational map.
     public func getObstacleGraphDebug() {
-        queue.async {
-            guard let matrix = self.makeGraph() else { return }
-            self.arNavigationKitDelegate?.updateDebugView(MapVisualisation(map: matrix))
+        queue.async { [weak self] in
+            guard let matrix = self?.makeGraph() else { return }
+            self?.arNavigationKitDelegate?.updateDebugView(MapVisualisation(map: matrix))
         }
     }
 
@@ -194,7 +220,8 @@ public class ARNavigationKit {
     ///   - start: The starting Vector from where Path planning should begin.
     ///   - end:  The vector of the destination.
     public func getObstacleGraphAndPathDebug(start: SCNVector3, end: SCNVector3) {
-        queue.async {
+        queue.async { [weak self] in
+            guard let self = self else { return }
             self.setMinMax()
             guard var map = self.makeGraph() else { return }
             let _start = self.vectorToIndex(start)
@@ -219,14 +246,30 @@ public class ARNavigationKit {
     }
     
 
-    private func lodeMapFromData(_ data: Data){
-        queue.async {
+    public func lodeMapFromData(_ data: Data){
+        queue.async { [weak self] in
+            guard let self = self else { return }
             let dataStride = data.count
             let voxelArray = data.withUnsafeBytes {
                 Array(UnsafeBufferPointer<Voxel>(start: $0, count: dataStride/MemoryLayout<Voxel>.stride))
             }
             voxelArray.forEach {self.voxelSet.insert($0)}
         }
+    }
+    
+    @available(iOS 13.4, *)
+    private static func vertexToWorldSpace(_ mesh: ARMeshAnchor) -> [vector_float3] {
+        let geometry = mesh.geometry
+        let vertices = geometry.vertices
+        var verticesPosition = [vector_float3](repeating: vector_float3(), count: vertices.count)
+        for vertexIndex in 0..<vertices.count {
+            let vertex = geometry.vertex(at: UInt32(vertexIndex))
+            var vertexLocalTransform = matrix_identity_float4x4
+            vertexLocalTransform.columns.3 = SIMD4<Float>(x: vertex.0, y: vertex.1, z: vertex.2, w: 1)
+            let vertexWorldPosition = vector_float3((mesh.transform * vertexLocalTransform).position)
+            verticesPosition[vertexIndex] = vertexWorldPosition
+        }
+        return verticesPosition
     }
 
     private func vectorToIndex(_ vector: SCNVector3) -> CGPoint {
@@ -281,6 +324,8 @@ public class ARNavigationKit {
         }
         
     }
+    
+
 
     /// Generate a geometry point cloud out of current Vertices.
     private func pointCloudGeometry(for points: [SIMD3<Float>]) -> SCNGeometry? {
@@ -346,3 +391,5 @@ public class ARNavigationKit {
     }
     
 }
+
+
