@@ -54,11 +54,13 @@ class AStar {
     private var end: CGPoint
     private let diag: Bool
     private let nearestNeighbour: Int
+    private let costForBlockedMoves: Double?
 
-    init(map: [[Int]], start: CGPoint, diag: Bool,nearestNeighbour: Int) {
+    init(map: [[Int]], start: CGPoint, diag: Bool,nearestNeighbour: Int, costForBlockedMoves: Double?) {
         open = Heap<Node>(sort: <)
         closed = Set<Node>()
         path = []
+        self.costForBlockedMoves = costForBlockedMoves
         self.map = map
         self.nearestNeighbour = nearestNeighbour
         now = Node(parent: nil, position: start, g: 0, h: 0)
@@ -71,7 +73,7 @@ class AStar {
             print("Source is invalid")
         }
         // Either the source or the destination is blocked.
-        if map[start.xI][start.yI] == 1 {
+        if map[start.xI][start.yI] == 1, costForBlockedMoves == nil {
             print("Source is blocked")
         }
     }
@@ -86,7 +88,7 @@ class AStar {
         }
 
         // destination is blocked.
-        if map[end.xI][end.yI] == 1 {
+        if map[end.xI][end.yI] == 1, costForBlockedMoves == nil {
             print("destination is blocked")
             return nil
         }
@@ -95,6 +97,7 @@ class AStar {
         closed.insert(now)
         addNeigborsToOpenList()
         while now.position.x != end.x || now.position.y != end.y {
+            
             if open.isEmpty { // Nothing to examine
                 return nil
             }
@@ -138,7 +141,10 @@ class AStar {
                     guard let currentParent = node.parent else { continue }
                     node.g = currentParent.g + 1 // Horizontal/vertical cost = 1.0.
                     node.g += Double(map[newX][newY]) // add movement cost for this square.
-                    node.g += map[newX][newY] == 2 ? 3 : 0
+                    node.g += map[newX][newY] == 2 ? 5 : 0
+                    if let cost = costForBlockedMoves, map[newX][newY] == 1 {
+                        node.g += cost
+                    }
                     
                     // Ensures a safe boundary around obstacles if possible.
                     let gAdd  = getNNabers(arr: map, x: newX, y: newY, n: nearestNeighbour)
@@ -159,7 +165,7 @@ class AStar {
     
     
     private func getNNabers(arr:[[Int]],x: Int,y: Int,n: Int) -> (Bool,Int) {
-        if !isValid(x, y) || arr[x][y] == 1 {
+        if !isValid(x, y) || (arr[x][y] == 1 && costForBlockedMoves == nil) {
             return (false , n)
         }
         

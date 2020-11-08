@@ -35,7 +35,7 @@ public enum filters: Int {
  Tracking can no longer be resumed once the session is paused.
  */
 public class ARNavigationKit {
-    private let queue = DispatchQueue(label: "com.ferdinand.ARNavigationKit")
+    private let queue = DispatchQueue(label: "com.ferdinand.ARNavigationKit", qos: .userInitiated)
     private var voxelSet = Set<Voxel>()
     private var gridSize: Float!
     private var groundHeight: Float?
@@ -44,6 +44,7 @@ public class ARNavigationKit {
     private var xMin: Float? // Min width.
     private var zMax: Float? // Max length.
     private var zMin: Float? // Min length.
+    private let semaphore = DispatchSemaphore(value: 1)
     /// A record of voxels which have already been added to the SCNScene.
     private var alreadyRenderedVoxels = Set<Voxel>()
 
@@ -57,10 +58,12 @@ public class ARNavigationKit {
     public var filter: filters = .none
     
     public var allowDiagonalMovement = true
+    
+    public var allowBlockMoveWithCost: Double?
 
     /// Delegate  required for callbacks.
     public weak var arNavigationKitDelegate: ARNavigationKitDelegate?
-
+ 
     ///  Sets the minimum resolution of a Voxel in metres cubed as well as the grid size used.
     /// - Parameter VoxelGridCellSize: grid cell size  in metres.
     public init(VoxelGridCellSize: Float) {
@@ -93,10 +96,13 @@ public class ARNavigationKit {
     ///   - meshs: [ARMeshAnchor]
     @available(iOS 13.4, *)
     public func generatingMapFromMesh(_ meshs: [ARMeshAnchor]) {
-        queue.sync { [weak self] in
-            voxelSet = Set<Voxel>()
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            self.semaphore.wait()
+            self.voxelSet = []
             let verticesPositions = meshs.flatMap { ARNavigationKit.vertexToWorldSpace($0) }
-            self?.addVoxels(verticesPositions)
+            verticesPositions.forEach({self._addVoxel($0)})
+            self.semaphore.signal()
         }
     }
 
@@ -105,14 +111,7 @@ public class ARNavigationKit {
     public func addVoxel(_ vector: vector_float3) {
         queue.sync { [weak self] in
             guard let self = self else { return }
-            let voxel = Voxel(vector: self.normaliseVector(vector), scale: vector_float3(self.gridSize, self.gridSize, self.gridSize), density: 1)
-            if self.voxelSet.contains(voxel) {
-                guard var newVoxel = self.voxelSet.remove(voxel) else { return }
-                newVoxel.density += 1
-                self.voxelSet.insert(newVoxel)
-            } else {
-                self.voxelSet.insert(voxel)
-            }
+            self._addVoxel(vector)
         }
     }
 
@@ -152,15 +151,20 @@ public class ARNavigationKit {
     ///   - start: The starting Vector from where Path planning should begin.
     ///   - end:  The vector of the destination.
     public func getPath(start: SCNVector3, end: SCNVector3) {
-        queue.sync { [weak self] in
+        queue.async { [weak self] in
             guard let self = self else { return }
+            self.semaphore.wait()
             self.setMinMax()
             guard let map = self.makeGraph() else { return }
             guard let xmax = self.xMax else { return }
             guard let zmax = self.zMax else { return }
             let _start = self.vectorToIndex(start)
             let _end = self.vectorToIndex(end)
-            let aStar = AStar(map: map, start: _start, diag: self.allowDiagonalMovement, nearestNeighbour: self.obstacleBufferForPath)
+            let aStar = AStar(map: map,
+                              start: _start,
+                              diag: self.allowDiagonalMovement,
+                              nearestNeighbour: self.obstacleBufferForPath,
+                              costForBlockedMoves: self.allowBlockMoveWithCost)
             let path = aStar.findPathTo(end: _end)?.map { (pathNode) -> vector_float3 in
                 
                 let row = Float(pathNode.position.xD)
@@ -173,7 +177,9 @@ public class ARNavigationKit {
             }
 
             DispatchQueue.main.async { [weak self] in
-                self?.arNavigationKitDelegate?.getPathupdate(path)
+                guard let self = self else { return }
+                self.arNavigationKitDelegate?.getPathupdate(path)
+                self.semaphore.signal()
             }
         }
     }
@@ -184,7 +190,7 @@ public class ARNavigationKit {
     ///  - Parameter onlyObstacles: option if true will only return Voxle Nodes of obstacles.
     ///  - Parameter completion:  callback  returns SCNNode of Voxles.
     public func getVoxelMap(redrawAll: Bool,onlyObstacles: Bool, completion: @escaping ([SCNNode]) -> Void) {
-        queue.async { [weak self] in
+        queue.sync { [weak self] in
             guard let self = self else { return }
             var voxelNodes = [SCNNode]()
             let voxels = self.voxelSet
@@ -208,9 +214,11 @@ public class ARNavigationKit {
     /// Requests the current navigational map used for path planning.
     /// Use the ARNavigationKitDelegate (updateDebugView) delegate method to receive the rendered navigational map.
     public func getObstacleGraphDebug() {
-        queue.async { [weak self] in
+        queue.sync { [weak self] in
             guard let matrix = self?.makeGraph() else { return }
-            self?.arNavigationKitDelegate?.updateDebugView(MapVisualisation(map: matrix))
+            DispatchQueue.main.async {
+                self?.arNavigationKitDelegate?.updateDebugView(MapVisualisation(map: matrix))
+            }
         }
     }
 
@@ -220,14 +228,19 @@ public class ARNavigationKit {
     ///   - start: The starting Vector from where Path planning should begin.
     ///   - end:  The vector of the destination.
     public func getObstacleGraphAndPathDebug(start: SCNVector3, end: SCNVector3) {
-        queue.async { [weak self] in
+        queue.sync { [weak self] in
             guard let self = self else { return }
             self.setMinMax()
             guard var map = self.makeGraph() else { return }
             let _start = self.vectorToIndex(start)
             let _end = self.vectorToIndex(end)
 
-            let aStar = AStar(map: map, start: _start, diag: self.allowDiagonalMovement, nearestNeighbour: self.obstacleBufferForPath)
+            let aStar = AStar(map: map,
+                              start: _start,
+                              diag: self.allowDiagonalMovement,
+                              nearestNeighbour: self.obstacleBufferForPath,
+                              costForBlockedMoves: self.allowBlockMoveWithCost
+            )
             guard let path = aStar.findPathTo(end: _end) else { return }
             path.forEach { map[$0.position.xI][$0.position.yI] = map[$0.position.xI][$0.position.yI] == 1 ? 4 : 3 }
             DispatchQueue.main.async {
@@ -323,6 +336,16 @@ public class ARNavigationKit {
                 return graph
         }
         
+    }
+    
+    private func _addVoxel(_ vector: vector_float3) {
+        let voxel = Voxel(vector: self.normaliseVector(vector), scale: vector_float3(self.gridSize,self.gridSize, self.gridSize), density: 1)
+        let check = voxelSet.insert(voxel)
+        if check.inserted {
+            var newVoxel = check.memberAfterInsert
+            newVoxel.density += 1
+            self.voxelSet.update(with: newVoxel)
+        }
     }
     
 
