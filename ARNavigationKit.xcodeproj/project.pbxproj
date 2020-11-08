@@ -20,7 +20,6 @@
 		CF927F3B239EF0F4000930E5 /* SCNVector4+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF927F2E239EF0F4000930E5 /* SCNVector4+Extensions.swift */; };
 		CF927F3C239EF0F4000930E5 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF927F2F239EF0F4000930E5 /* Extensions.swift */; };
 		CF927F3D239EF0F4000930E5 /* VoxelMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF927F30239EF0F4000930E5 /* VoxelMap.swift */; };
-		CF927F3E239EF0F4000930E5 /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF927F31239EF0F4000930E5 /* Matrix.swift */; };
 		CF927F3F239EF0F4000930E5 /* Heap.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF927F32239EF0F4000930E5 /* Heap.swift */; };
 		CF927F40239EF0F4000930E5 /* Mapfilters.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF927F33239EF0F4000930E5 /* Mapfilters.swift */; };
 		CF927F41239EF0F4000930E5 /* Voxel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF927F34239EF0F4000930E5 /* Voxel.swift */; };
@@ -54,7 +53,6 @@
 		CF927F2E239EF0F4000930E5 /* SCNVector4+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SCNVector4+Extensions.swift"; sourceTree = "<group>"; };
 		CF927F2F239EF0F4000930E5 /* Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		CF927F30239EF0F4000930E5 /* VoxelMap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VoxelMap.swift; sourceTree = "<group>"; };
-		CF927F31239EF0F4000930E5 /* Matrix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Matrix.swift; sourceTree = "<group>"; };
 		CF927F32239EF0F4000930E5 /* Heap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Heap.swift; sourceTree = "<group>"; };
 		CF927F33239EF0F4000930E5 /* Mapfilters.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mapfilters.swift; sourceTree = "<group>"; };
 		CF927F34239EF0F4000930E5 /* Voxel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Voxel.swift; sourceTree = "<group>"; };
@@ -126,7 +124,6 @@
 				CF927F28239EF0F4000930E5 /* MapVisualisation.swift */,
 				CF927F2F239EF0F4000930E5 /* Extensions.swift */,
 				CF927F30239EF0F4000930E5 /* VoxelMap.swift */,
-				CF927F31239EF0F4000930E5 /* Matrix.swift */,
 				CF927F32239EF0F4000930E5 /* Heap.swift */,
 				CF927F33239EF0F4000930E5 /* Mapfilters.swift */,
 				CF927F34239EF0F4000930E5 /* Voxel.swift */,
@@ -300,7 +297,6 @@
 				CF927F3C239EF0F4000930E5 /* Extensions.swift in Sources */,
 				CF927F37239EF0F4000930E5 /* SCNVector3+Extensions.swift in Sources */,
 				CF927F3A239EF0F4000930E5 /* SKLine.swift in Sources */,
-				CF927F3E239EF0F4000930E5 /* Matrix.swift in Sources */,
 				CF927F35239EF0F4000930E5 /* AStar.swift in Sources */,
 				CF927F39239EF0F4000930E5 /* MMSlidingButton.swift in Sources */,
 				CF927F3D239EF0F4000930E5 /* VoxelMap.swift in Sources */,
@@ -453,7 +449,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = LJH7752BKA;
+				DEVELOPMENT_TEAM = 8M8S4HQM6M;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -479,7 +475,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = LJH7752BKA;
+				DEVELOPMENT_TEAM = 8M8S4HQM6M;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -504,7 +500,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = LJH7752BKA;
+				DEVELOPMENT_TEAM = 8M8S4HQM6M;
 				INFOPLIST_FILE = ARNavigationKitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -523,7 +519,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = LJH7752BKA;
+				DEVELOPMENT_TEAM = 8M8S4HQM6M;
 				INFOPLIST_FILE = ARNavigationKitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
